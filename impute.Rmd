@@ -1,5 +1,6 @@
 ```{r clean slate}
 # start without any extraneous variables
+save.image("backup.RData")
 rm(list=ls())
 ```
 
