@@ -4,7 +4,7 @@ save.image("backup.RData")
 rm(list=ls())
 ```
 
-First, let's generate some simple binary data values.
+First, you need to generate some simple binary data values.
 
 ```{r generate random 0-1}
 set.seed(14814)
@@ -247,7 +247,7 @@ the imputations model the correct amount of variation and then pool the results 
 data analyses conducted across these multiple imputations. This is a topic for a
 future blog entry.
 
-Before going, let's save everything in case you need it later.
+Before going, you should save everything in case you need it later.
 
 ```{r save everything}
 # save results for later use
