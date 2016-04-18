@@ -1,3 +1,12 @@
+# Impute.Rmd
+
+This program was written in R Markdown written by Steve Simon. It requires
+* R (no particular version) and the mice package, and
+* an Internet connection (to access the Titanic data set).
+
+It shows some simple examples of single imputation on an artifical
+data set and on the Titanic data set.
+
 ```{r clean slate}
 # start without any extraneous variables
 save.image("backup.RData")
@@ -250,6 +259,6 @@ future blog entry.
 Before going, you should save everything in case you need it later.
 
 ```{r save everything}
-# save results for later use
+# save results for later use.
 save.image("impute.RData")
 ```
