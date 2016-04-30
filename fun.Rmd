@@ -20,7 +20,8 @@ Let's first look at what functions can see in your main program.
 
 A function in R can see values that appear in your environment.
 
-```{r information_that_a_function_can_see}
+```{r information_that_your_function_can_see}
+save.image("balckup.RData"); rm(list=ls()) # start with a blank slate.
 vegas <- function() {
   if (lottery_winnings>0) {return("Congraluations!")}
      else return("Sorry!")
@@ -37,6 +38,7 @@ in Vegas. The only thing that the main program can see
 is what the function returns.
 
 ```{r informantion_that_your_main_program_cannot_see}
+rm(list=ls())
 vegas <- function() {
   # You hit the jackpot.
   lottery_winnings <- 1e8
@@ -52,6 +54,7 @@ To allow changes inside a function to persist outside
 the function, use the "<<-" assignment operator.
 
 ```{r information_that_your_main_program_can_see}
+rm(list=ls())
 vegas <- function() {
   # You hit the jackpot.
   lottery_winnings <<- 1e8
@@ -63,6 +66,36 @@ vegas()
 print(lottery_winnings)
 ```
 
+I like that a lot better, don't you?
+
+Now there are problems in the opposite direction also. A function doesn't
+know exactly what is being passed to it other than what the value itself
+is.
+
+```{r information_that_your_function cannot_see}
+rm(list=ls())
+vegas <- function(winnings) {
+  print(paste("You have", winnings,"dollars in", "???"))
+  return("Congratulations!")
+}
+lottery_winnings <- 1e6
+vegas(lottery_winnings)
+poker_winnings <- 1e7
+vegas(poker_winnings)
+```
+
+```{r using_deparse_and_substitute}
+rm(list=ls())
+vegas <- function(winnings) {
+  variable_name <- deparse(substitute(winnings))
+  print(paste("You have", winnings,"dollars in", variable_name))
+  return("Congratulations!")
+}
+lottery_winnings <- 1e6
+vegas(lottery_winnings)
+poker_winnings <- 1e7
+vegas(poker_winnings)
+```
 
 
 ```{r save-everything, timer=TRUE}
