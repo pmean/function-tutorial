@@ -18,6 +18,8 @@ you can peek around the wall and pass information back and forth.
 
 Let's first look at what functions can see in your main program.
 
+A function in R can see values that appear in your environment.
+
 ```{r information_that_a_function_can_see}
 vegas <- function() {
   if (lottery_winnings>0) {return("Congraluations!")}
@@ -29,7 +31,10 @@ lottery_winnings <- 1E6
 vegas()
 ```
 
-A function in R can see values that appear in your environment.
+But any changes made inside a function disappear once the
+function ends. In other words, what happens in Vegas stays
+in Vegas. The only thing that the main program can see
+is what the function returns.
 
 ```{r informantion_that_your_main_program_cannot_see}
 vegas <- function() {
@@ -43,8 +48,22 @@ vegas()
 print(lottery_winnings)
 ```
 
-But your environment is not changed by changes inside your function.
-In other words, what happens in Vegas, stays in Vegas.
+To allow changes inside a function to persist outside
+the function, use the "<<-" assignment operator.
+
+```{r information_that_your_main_program_can_see}
+vegas <- function() {
+  # You hit the jackpot.
+  lottery_winnings <<- 1e8
+  print(paste("You've won", lottery_winnings,"dollars."))
+  return("Congratulations!")
+}
+lottery_winnings <- 0
+vegas()
+print(lottery_winnings)
+```
+
+
 
 ```{r save-everything, timer=TRUE}
 save.image("archive.RData")
