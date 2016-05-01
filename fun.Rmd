@@ -97,6 +97,31 @@ poker_winnings <- 1e7
 vegas(poker_winnings)
 ```
 
+These are artificial examples, but here is a real example where you
+need to use the <<- assign operator and the deparse and substitute
+functions.
+
+Many of my programs accumulate a large number of intermediate
+data.frames. I would like to store and document these data frames
+so I could review things easily should things go wrong. The archive
+function automates this process.
+
+```{r archive_function}
+rm(list=ls())
+archive <- function(df) {
+  # get the name of the data frame
+  df_name <- deparse(substitute(df))
+  print(df_name)
+  if (!exists("arc")) arc <<- NULL
+  arc[[df_name]] <<- df
+  return(names(arc))
+}
+abc <- data.frame(x=LETTERS[1:3], y=letters[1:3])
+archive(abc)
+xyz <- data.frame(x=LETTERS[4:6], y=letters[4:6])
+archive(xyz)
+print(arc)
+```
 
 ```{r save-everything, timer=TRUE}
 save.image("archive.RData")
