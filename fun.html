@@ -61,396 +61,107 @@ img {
 
 
 
-<pre class="r"><code># start without any extraneous variables
-rm(list=ls())</code></pre>
-<p>First, let’s generate some simple binary data values.</p>
-<pre class="r"><code>set.seed(14814)
-zeros_and_ones &lt;- rbinom(100,1,0.5)
-print(zeros_and_ones)</code></pre>
-<pre><code>##   [1] 1 1 1 0 1 0 1 1 1 1 0 1 0 1 0 1 1 0 0 0 1 1 0 1 0 1 1 1 0 1 1 0 1 0 1
-##  [36] 1 0 0 0 1 1 0 0 0 1 0 0 1 0 1 0 0 0 1 1 0 0 0 0 1 1 1 1 1 1 1 1 0 1 0
-##  [71] 1 1 0 0 0 1 1 1 1 0 1 1 0 1 0 1 1 0 1 0 0 1 1 1 0 1 1 0 1 1</code></pre>
-<p>Arrange the data in a matrix with 20 rows and then convert it to a data frame. Give names to each column.</p>
-<pre class="r"><code>da &lt;- as.data.frame(matrix(zeros_and_ones, nrow=20))
-names(da) &lt;- paste(&quot;t&quot;, 1:5, sep=&quot;&quot;)
-print(da)</code></pre>
-<pre><code>##    t1 t2 t3 t4 t5
-## 1   1  1  1  1  1
-## 2   1  1  0  1  1
-## 3   1  0  0  1  0
-## 4   0  1  0  1  1
-## 5   1  0  1  1  0
-## 6   0  1  0  1  1
-## 7   1  1  0  1  1
-## 8   1  1  1  0  0
-## 9   1  0  0  1  1
-## 10  1  1  1  0  0
-## 11  0  1  0  1  0
-## 12  1  0  0  1  1
-## 13  0  1  0  0  1
-## 14  1  0  1  0  1
-## 15  0  1  1  0  0
-## 16  1  1  0  1  1
-## 17  1  0  0  1  1
-## 18  0  0  0  1  0
-## 19  0  0  0  1  1
-## 20  0  1  1  0  1</code></pre>
-<p>Find ten random rows and convert the fifth value to NA.</p>
-<pre class="r"><code>delete_fifth_value &lt;- sample(1:20,10)
-print(sort(delete_fifth_value))</code></pre>
-<pre><code>##  [1]  1  2  3  4  5  8  9 11 12 16</code></pre>
-<pre class="r"><code>da[delete_fifth_value,5] &lt;- NA</code></pre>
-<p>Find five random rows among these rows and convert the fourth value to NA.</p>
-<pre class="r"><code>delete_fourth_value &lt;- sample(delete_fifth_value,5)
-print(sort(delete_fourth_value))</code></pre>
-<pre><code>## [1]  2  3  9 12 16</code></pre>
-<pre class="r"><code>da[delete_fourth_value,4] &lt;- NA</code></pre>
-<p>Find two random rows among these rows and convert the third value to NA.</p>
-<pre class="r"><code>delete_third_value &lt;- sample(delete_fourth_value,2)
-print(sort(delete_third_value))</code></pre>
-<pre><code>## [1] 2 3</code></pre>
-<pre class="r"><code>da[delete_third_value,3] &lt;- NA
-print(da)</code></pre>
-<pre><code>##    t1 t2 t3 t4 t5
-## 1   1  1  1  1 NA
-## 2   1  1 NA NA NA
-## 3   1  0 NA NA NA
-## 4   0  1  0  1 NA
-## 5   1  0  1  1 NA
-## 6   0  1  0  1  1
-## 7   1  1  0  1  1
-## 8   1  1  1  0 NA
-## 9   1  0  0 NA NA
-## 10  1  1  1  0  0
-## 11  0  1  0  1 NA
-## 12  1  0  0 NA NA
-## 13  0  1  0  0  1
-## 14  1  0  1  0  1
-## 15  0  1  1  0  0
-## 16  1  1  0 NA NA
-## 17  1  0  0  1  1
-## 18  0  0  0  1  0
-## 19  0  0  0  1  1
-## 20  0  1  1  0  1</code></pre>
-<p>Now, we’re ready to start.</p>
-<p>For a data set this small, you can see the missing data pattern. This is an example of monotone missing data. If data is missing for one column, it is missing for any subsequent column.</p>
-<pre class="r"><code>library(&quot;mice&quot;)</code></pre>
-<pre><code>## Loading required package: Rcpp
-## Loading required package: lattice
-## mice 2.22 2014-06-10</code></pre>
-<pre class="r"><code>mp &lt;- md.pattern(da)
-print(mp)</code></pre>
-<pre><code>##    t1 t2 t3 t4 t5   
-## 10  1  1  1  1  1  0
-##  5  1  1  1  1  0  1
-##  3  1  1  1  0  0  2
-##  2  1  1  0  0  0  3
-##     0  0  2  5 10 17</code></pre>
-<p>What looks like the first and unlabelled column is actually the row names for the matrix of missing value patterns. These row names represent the number of times that a particular missing value pattern occurs. The first, and most common missing value pattern appears at the top. It occurs 10 times. The particular pattern is indicated by a sequence of 0s and 1s indicating what is missing (0) and what is not.</p>
-<p>The missing value pattern for the most common pattern is 1, 1, 1, 1, 1. This sequence of all 1’s means that for ten of the rows of the data frame, the missing pattern is nothing missing.</p>
-<p>The second most common missing value pattern is 1, 1, 1, 1, 0 which occurs 5 times. This pattern with all 1’s except for the last value means that there are five rows where only t5 is missing.</p>
-<p>The next missing value pattern, 1, 1, 1, 0, 0, represents rows where t4, t5 are missing. This pattern occurs 3 times.</p>
-<p>The final missing value pattern, 1, 1, 0, 0, 0, represents the 2 times that a row has t3, t4, t5 missing.</p>
-<p>The last row of the missing pattern matrix tells you how many missing values total there are for each variable. There are 0 missing values for t1, 0 for t2, 2 for t3, and so forth.</p>
-<p>The final column tells you how many variables are missing for each missing value pattern. The first missing value pattern, for example, has 0 variables with missing values, and the last missing value pattern has 3 variables with missing values. You could have looked at the sequence of 0’s and 1’s to figure this out, but this solumn is a nice convenience wheh you have lots of variables, because it is easy to miscount a long string of 0s and 1s.</p>
-<div id="simple-imputation" class="section level2">
-<h2>Simple imputation</h2>
-<p>Assume that the variable is 1 if an event occured and 0 otherwise. Let’s assume that the event is something bad like a side effect for a drug. Let’s also assume that the five columns represent five time points when you checked each patient to see if they had the side effect.</p>
-<p>What is the probability of observing an adverse event at each time point? Any time you are concerned about missing values, add the useNA=“always” option to the table command.</p>
-<pre class="r"><code>for (v in names(da)) {
-  cat(&quot;\n\nAdverse events for&quot;, v)
-  print(table(da[,v], useNA=&quot;always&quot;))
-}</code></pre>
-<pre><code>## 
-## 
-## Adverse events for t1
-##    0    1 &lt;NA&gt; 
-##    8   12    0 
-## 
-## 
-## Adverse events for t2
-##    0    1 &lt;NA&gt; 
-##    8   12    0 
-## 
-## 
-## Adverse events for t3
-##    0    1 &lt;NA&gt; 
-##   11    7    2 
-## 
-## 
-## Adverse events for t4
-##    0    1 &lt;NA&gt; 
-##    6    9    5 
-## 
-## 
-## Adverse events for t5
-##    0    1 &lt;NA&gt; 
-##    3    7   10</code></pre>
-<p>So what is your estimate of the probability of a side effect at each time point? For t1 and t2, the answer is obviously 12/20 or 60%. But what about the others. Should you take the take the 7 side effects measured at t3 and divide by the 20 patients to get a probability of 35%? Or should you divide by 18, the number of non-missing values, to get 39%?</p>
-<p>There are several simple approaches that you can try, but they all make assumptions that might be difficult to support.</p>
-</div>
-<div id="no-news-is-good-news." class="section level2">
-<h2>No news is good news.</h2>
-<p>One assumption that you can sometimes make is that no news is good news. When you fail to mention whether something bad occured, it could be that the absence of something is easy to forget to document. Kind of like Sherlock Holmes’s obseervation of a fact that everyone else overlooked, the dog that didn’t bark in the nighttime. In this example, “good news” corresponds to a zero value.</p>
-<p>Here’s how you would do this in R. The is.na function identifies which entries in a matrix are missing, and you just replace them with zeros.</p>
-<pre class="r"><code>im1 &lt;- da
-im1[is.na(im1)] &lt;- 0
-for (v in names(im1)) {
-  cat(&quot;\n\nAdverse events for&quot;, v)
-  cat(&quot; imputing 0 for missing values.&quot;)
-  print(prop.table(table(im1[,v])))
-}</code></pre>
-<pre><code>## 
-## 
-## Adverse events for t1 imputing 0 for missing values.
-##   0   1 
-## 0.4 0.6 
-## 
-## 
-## Adverse events for t2 imputing 0 for missing values.
-##   0   1 
-## 0.4 0.6 
-## 
-## 
-## Adverse events for t3 imputing 0 for missing values.
-##    0    1 
-## 0.65 0.35 
-## 
-## 
-## Adverse events for t4 imputing 0 for missing values.
-##    0    1 
-## 0.55 0.45 
-## 
-## 
-## Adverse events for t5 imputing 0 for missing values.
-##    0    1 
-## 0.65 0.35</code></pre>
-</div>
-<div id="no-news-is-bad-news." class="section level2">
-<h2>No news is bad news.</h2>
-<p>The opposite approach is to assume the worst. It may not make sense in this setting, but there are times where assuming the worst is not too unreasonable. Suppose you were conducting a smoking cessation study and your participants came back weekly for their pack of nicotine gum, which gives you an opportunity to ask whether they are still smoke free. You might even get a test of nicotine levels to verify what they tell you.</p>
-<p>The patients who fail to show up for their appointment might be skipping out because they have quit cold turkey and they don’t even need your nicotine gum anymore. But it is far more probable that they are skipping out because they’ve given up on the study and are smoking like a chimney again. A diet study might also be a setting where someone who drops out does so because the diet isn’t working.</p>
-<p>You do this with almost the exact same code.</p>
-<pre class="r"><code>im2 &lt;- da
-im2[is.na(im2)] &lt;- 1
-for (v in names(im2)) {
-  cat(&quot;\n\nAdverse events for&quot;, v)
-  cat(&quot; imputing 1 for missing values.&quot;)
-  print(prop.table(table(im2[,v])))
-}</code></pre>
-<pre><code>## 
-## 
-## Adverse events for t1 imputing 1 for missing values.
-##   0   1 
-## 0.4 0.6 
-## 
-## 
-## Adverse events for t2 imputing 1 for missing values.
-##   0   1 
-## 0.4 0.6 
-## 
-## 
-## Adverse events for t3 imputing 1 for missing values.
-##    0    1 
-## 0.55 0.45 
-## 
-## 
-## Adverse events for t4 imputing 1 for missing values.
-##   0   1 
-## 0.3 0.7 
-## 
-## 
-## Adverse events for t5 imputing 1 for missing values.
-##    0    1 
-## 0.15 0.85</code></pre>
-</div>
-<div id="no-news-is-average-news" class="section level2">
-<h2>No news is average news</h2>
-<p>Sometimes, you can substitute the mean value for the missing value. This is like saying that the values that are missing are no more likely to be larger on average or smaller on average than the values that are not missing. When you remove the patients with missing values, you are often implicitly imputing the missing values to be equal to the mean of the non-missing values.</p>
-<p>Here’s how you would do it in R.</p>
-<pre class="r"><code>im3 &lt;- da
-for (v in names(im3)) {
-  mn &lt;- mean(da[ , v], na.rm=TRUE)
-  im3[is.na(im3[, v]), v] &lt;- mn
-  cat(&quot;\n\nReplacing missing values in&quot;, v, &quot;with&quot;,round(mn,2))
-}</code></pre>
-<pre><code>## 
-## 
-## Replacing missing values in t1 with 0.6
-## 
-## Replacing missing values in t2 with 0.6
-## 
-## Replacing missing values in t3 with 0.39
-## 
-## Replacing missing values in t4 with 0.6
-## 
-## Replacing missing values in t5 with 0.7</code></pre>
-<pre class="r"><code># table and prop.table won't work here because the imputed
-# value destroys the binary-ness of the variable. You can get the same 
-# result by omitting the missing values.
-for (v in names(im3)) {
-  cat(&quot;\n\nAdverse events for&quot;, v)
-  cat(&quot; imputing the mean for missing values.&quot;)
-  print(prop.table(table(im3[,v])))
-}</code></pre>
-<pre><code>## 
-## 
-## Adverse events for t1 imputing the mean for missing values.
-##   0   1 
-## 0.4 0.6 
-## 
-## 
-## Adverse events for t2 imputing the mean for missing values.
-##   0   1 
-## 0.4 0.6 
-## 
-## 
-## Adverse events for t3 imputing the mean for missing values.
-##                 0 0.388888888888889                 1 
-##              0.55              0.10              0.35 
-## 
-## 
-## Adverse events for t4 imputing the mean for missing values.
-##    0  0.6    1 
-## 0.30 0.25 0.45 
-## 
-## 
-## Adverse events for t5 imputing the mean for missing values.
-##    0  0.7    1 
-## 0.15 0.50 0.35</code></pre>
-<pre class="r"><code>for (v in names(im3)) {
-  cat(&quot;\n\nAdverse events for&quot;, v)
-  cat(&quot; imputing the mean for missing values.&quot;)
-  print(prop.table(table(da[,v], useNA=&quot;no&quot;)))
-}</code></pre>
-<pre><code>## 
-## 
-## Adverse events for t1 imputing the mean for missing values.
-##   0   1 
-## 0.4 0.6 
-## 
-## 
-## Adverse events for t2 imputing the mean for missing values.
-##   0   1 
-## 0.4 0.6 
-## 
-## 
-## Adverse events for t3 imputing the mean for missing values.
-##         0         1 
-## 0.6111111 0.3888889 
-## 
-## 
-## Adverse events for t4 imputing the mean for missing values.
-##   0   1 
-## 0.4 0.6 
-## 
-## 
-## Adverse events for t5 imputing the mean for missing values.
-##   0   1 
-## 0.3 0.7</code></pre>
-</div>
-<div id="no-news-is-old-news" class="section level2">
-<h2>No news is old news</h2>
-<p>When you have a sequence of observations, if a value is missing, you can substitute the previous value. The is called “Last Observation Carried Forward” or “LOCF”. This approach is used a lot in actual research studies, but it is very controversial.</p>
-<pre class="r"><code>im4 &lt;- da
-for (j in 3:5) {
-  cat(&quot;\n\nAdverse events for&quot;, v)
-  cat(&quot; imputing using LOCF.&quot;)
-  missing_locations &lt;- is.na(im4[,j])
-  im4[missing_locations, j] &lt;- im4[missing_locations, j-1]
-  print(prop.table(table(im3[,v])))
-}</code></pre>
-<pre><code>## 
-## 
-## Adverse events for t5 imputing using LOCF.
-##    0  0.7    1 
-## 0.15 0.50 0.35 
-## 
-## 
-## Adverse events for t5 imputing using LOCF.
-##    0  0.7    1 
-## 0.15 0.50 0.35 
-## 
-## 
-## Adverse events for t5 imputing using LOCF.
-##    0  0.7    1 
-## 0.15 0.50 0.35</code></pre>
-<pre class="r"><code>print(im4)</code></pre>
-<pre><code>##    t1 t2 t3 t4 t5
-## 1   1  1  1  1  1
-## 2   1  1  1  1  1
-## 3   1  0  0  0  0
-## 4   0  1  0  1  1
-## 5   1  0  1  1  1
-## 6   0  1  0  1  1
-## 7   1  1  0  1  1
-## 8   1  1  1  0  0
-## 9   1  0  0  0  0
-## 10  1  1  1  0  0
-## 11  0  1  0  1  1
-## 12  1  0  0  0  0
-## 13  0  1  0  0  1
-## 14  1  0  1  0  1
-## 15  0  1  1  0  0
-## 16  1  1  0  0  0
-## 17  1  0  0  1  1
-## 18  0  0  0  1  0
-## 19  0  0  0  1  1
-## 20  0  1  1  0  1</code></pre>
-<p>All of these approaches fall under the category of single imputation, because you impute a single value. While they might be acceptable in a limited number of settings, for most data analyses, single imputation relies on assumptions that are untestable and which often are at odds with your intuition. Let’s look at an example of why single imputation has limited utility.</p>
-</div>
-<div id="titanic-data-set" class="section level2">
-<h2>Titanic data set</h2>
-<p>There is a famous data set on mortality trends and patterns on the Titanic. The Titanic sunk during an era where people really did believe in the concept of women and children first. Let’s read in the data set and look at how imputation might be done.</p>
-<pre class="r"><code>fn &lt;- &quot;http://www.statsci.org/data/general/titanic.txt&quot;
-ti &lt;- read.delim(fn)
-head(ti)</code></pre>
-<pre><code>##                                            Name PClass   Age    Sex
-## 1                  Allen, Miss Elisabeth Walton    1st 29.00 female
-## 2                   Allison, Miss Helen Loraine    1st  2.00 female
-## 3           Allison, Mr Hudson Joshua Creighton    1st 30.00   male
-## 4 Allison, Mrs Hudson JC (Bessie Waldo Daniels)    1st 25.00 female
-## 5                 Allison, Master Hudson Trevor    1st  0.92   male
-## 6                            Anderson, Mr Harry    1st 47.00   male
-##   Survived
-## 1        1
-## 2        0
-## 3        0
-## 4        0
-## 5        1
-## 6        1</code></pre>
-<pre class="r"><code>dim(ti)</code></pre>
-<pre><code>## [1] 1313    5</code></pre>
-<pre class="r"><code>summary(ti)</code></pre>
-<pre><code>##                            Name      PClass         Age       
-##  Carlsson, Mr Frans Olof     :   2   1st:322   Min.   : 0.17  
-##  Connolly, Miss Kate         :   2   2nd:280   1st Qu.:21.00  
-##  Kelly, Mr James             :   2   3rd:711   Median :28.00  
-##  Abbing, Mr Anthony          :   1             Mean   :30.40  
-##  Abbott, Master Eugene Joseph:   1             3rd Qu.:39.00  
-##  Abbott, Mr Rossmore Edward  :   1             Max.   :71.00  
-##  (Other)                     :1304             NA's   :557    
-##      Sex         Survived     
-##  female:462   Min.   :0.0000  
-##  male  :851   1st Qu.:0.0000  
-##               Median :0.0000  
-##               Mean   :0.3427  
-##               3rd Qu.:1.0000  
-##               Max.   :1.0000  
-## </code></pre>
-<p>Notice that age has 557 missing values. Let’s see what happens if you use mean imputation.</p>
-<pre class="r"><code>mn &lt;- mean(ti$Age, na.rm=TRUE)
-imputed_age &lt;- ti$Age
-imputed_age[is.na(ti$Age)] &lt;- mn
-par(mfrow=c(2, 1))
-hist(ti$Age, main=paste(&quot;Unimputed age has a standard deviation of&quot;,round(sd(ti$Age, na.rm=TRUE),1)))
-hist(imputed_age, main=paste(&quot;Imputed age has a standard deviation of&quot;,round(sd(imputed_age, na.rm=TRUE),1)))</code></pre>
-<p><img src="data:image/png;base64,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" title alt width="672" /></p>
-<p>This is an extreme example, but it illustrates an important weakness of single imputation. All single imputation approaches will distort your data by underestimating the true variation of your data. There are a few single imputation approaches that don’t distort things too much, but all of the approaches mentioned above will grossly understate the true variation in your data, unless the proportion of missing values is trivially small.</p>
-<p>The correct approach is to impute your missing data multiple times, make sure that the imputations model the correct amount of variation and then pool the results of data analyses conducted across these multiple imputations. This is a topic for a future blog entry.</p>
-<p>Before going, let’s save everything in case you need it later.</p>
-<pre class="r"><code># save results for later use
-save.image(&quot;impute.RData&quot;)</code></pre>
+<div id="impute.rmd" class="section level1">
+<h1>Impute.Rmd</h1>
+<p>This program was written in R Markdown written by Steve Simon. It requires * R (no particular version) — title: “Special tricks with functions” author: “Steve Simon” date: “Thursday, April 28, 2016” output: html_document —</p>
+<p>In R, there is a solid wall between what goes on in your R program and what goes on inside the functions that you write for your program. The functions are largely unaware of what is going on in your program and the rest of your program is largely unaware of what is going on in functions. There are ways, however, where you can peek around the wall and pass information back and forth.</p>
+<p>Let’s first look at what functions can see in your main program.</p>
+<p>A function in R can see values that appear in your environment.</p>
+<pre class="r"><code>save.image(&quot;balckup.RData&quot;); rm(list=ls()) # start with a blank slate.
+vegas &lt;- function() {
+  if (lottery_winnings&gt;0) {return(&quot;Congraluations!&quot;)}
+     else return(&quot;Sorry!&quot;)
+}
+lottery_winnings &lt;- 0
+vegas()</code></pre>
+<pre><code>## [1] &quot;Sorry!&quot;</code></pre>
+<pre class="r"><code>lottery_winnings &lt;- 1E6
+vegas()</code></pre>
+<pre><code>## [1] &quot;Congraluations!&quot;</code></pre>
+<p>But any changes made inside a function disappear once the function ends. In other words, what happens in Vegas stays in Vegas. The only thing that the main program can see is what the function returns.</p>
+<pre class="r"><code>rm(list=ls())
+vegas &lt;- function() {
+  # You hit the jackpot.
+  lottery_winnings &lt;- 1e8
+  print(paste(&quot;You've won&quot;, lottery_winnings,&quot;dollars.&quot;))
+  return(&quot;Congratulations!&quot;)
+}
+lottery_winnings &lt;- 0
+vegas()</code></pre>
+<pre><code>## [1] &quot;You've won 1e+08 dollars.&quot;</code></pre>
+<pre><code>## [1] &quot;Congratulations!&quot;</code></pre>
+<pre class="r"><code>print(lottery_winnings)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p>To allow changes inside a function to persist outside the function, use the “&lt;&lt;-” assignment operator.</p>
+<pre class="r"><code>rm(list=ls())
+vegas &lt;- function() {
+  # You hit the jackpot.
+  lottery_winnings &lt;&lt;- 1e8
+  print(paste(&quot;You've won&quot;, lottery_winnings,&quot;dollars.&quot;))
+  return(&quot;Congratulations!&quot;)
+}
+lottery_winnings &lt;- 0
+vegas()</code></pre>
+<pre><code>## [1] &quot;You've won 1e+08 dollars.&quot;</code></pre>
+<pre><code>## [1] &quot;Congratulations!&quot;</code></pre>
+<pre class="r"><code>print(lottery_winnings)</code></pre>
+<pre><code>## [1] 1e+08</code></pre>
+<p>I like that a lot better, don’t you?</p>
+<p>Now there are problems in the opposite direction also. A function doesn’t know exactly what is being passed to it other than what the value itself is.</p>
+<pre class="r"><code>rm(list=ls())
+vegas &lt;- function(winnings) {
+  print(paste(&quot;You have&quot;, winnings,&quot;dollars in&quot;, &quot;???&quot;))
+  return(&quot;Congratulations!&quot;)
+}
+lottery_winnings &lt;- 1e6
+vegas(lottery_winnings)</code></pre>
+<pre><code>## [1] &quot;You have 1e+06 dollars in ???&quot;</code></pre>
+<pre><code>## [1] &quot;Congratulations!&quot;</code></pre>
+<pre class="r"><code>poker_winnings &lt;- 1e7
+vegas(poker_winnings)</code></pre>
+<pre><code>## [1] &quot;You have 1e+07 dollars in ???&quot;</code></pre>
+<pre><code>## [1] &quot;Congratulations!&quot;</code></pre>
+<pre class="r"><code>rm(list=ls())
+vegas &lt;- function(winnings) {
+  variable_name &lt;- deparse(substitute(winnings))
+  print(paste(&quot;You have&quot;, winnings,&quot;dollars in&quot;, variable_name))
+  return(&quot;Congratulations!&quot;)
+}
+lottery_winnings &lt;- 1e6
+vegas(lottery_winnings)</code></pre>
+<pre><code>## [1] &quot;You have 1e+06 dollars in lottery_winnings&quot;</code></pre>
+<pre><code>## [1] &quot;Congratulations!&quot;</code></pre>
+<pre class="r"><code>poker_winnings &lt;- 1e7
+vegas(poker_winnings)</code></pre>
+<pre><code>## [1] &quot;You have 1e+07 dollars in poker_winnings&quot;</code></pre>
+<pre><code>## [1] &quot;Congratulations!&quot;</code></pre>
+<p>These are artificial examples, but here is a real example where you need to use the &lt;&lt;- assign operator and the deparse and substitute functions.</p>
+<p>Many of my programs accumulate a large number of intermediate data.frames. I would like to store and document these data frames so I could review things easily should things go wrong. The archive function automates this process.</p>
+<pre class="r"><code>rm(list=ls())
+archive &lt;- function(df) {
+  # get the name of the data frame
+  df_name &lt;- deparse(substitute(df))
+  print(df_name)
+  if (!exists(&quot;ar&quot;)) ar &lt;&lt;- NULL
+  # ar[[df_name]] &lt;- df
+  # return(names(ar))
+}
+abc &lt;- data.frame(x=LETTERS[1:3], y=letters[1:3])
+archive(abc)</code></pre>
+<pre><code>## [1] &quot;abc&quot;</code></pre>
+<pre class="r"><code>xyz &lt;- data.frame(x=LETTERS[24:26], y=letters[24:26])
+archive(xyz)</code></pre>
+<pre><code>## [1] &quot;xyz&quot;</code></pre>
+<pre class="r"><code>print(archive)</code></pre>
+<pre><code>## function(df) {
+##   # get the name of the data frame
+##   df_name &lt;- deparse(substitute(df))
+##   print(df_name)
+##   if (!exists(&quot;ar&quot;)) ar &lt;&lt;- NULL
+##   # ar[[df_name]] &lt;- df
+##   # return(names(ar))
+## }</code></pre>
+<pre class="r"><code>save.image(&quot;archive.RData&quot;)</code></pre>
 </div>
 
 

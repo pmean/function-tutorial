@@ -6,7 +6,7 @@ This program was written in R Markdown written by Steve Simon. It requires
 title: "Special tricks with functions"
 author: "Steve Simon"
 date: "Thursday, April 28, 2016"
-output: html_document
+output: html_document  
 ---
 
 In R, there is a solid wall between what goes on in your R program
@@ -16,12 +16,10 @@ in your program and the rest of your program is largely unaware
 of what is going on in functions. There are ways, however, where
 you can peek around the wall and pass information back and forth.
 
-Let's first look at what functions can see in your main program.
-
-A function in R can see values that appear in your environment.
+A function in R can see values that appear in your main program.
 
 ```{r information_that_your_function_can_see}
-save.image("balckup.RData"); rm(list=ls()) # start with a blank slate.
+save.image("backup.RData"); rm(list=ls()) # start with a blank slate.
 vegas <- function() {
   if (lottery_winnings>0) {return("Congraluations!")}
      else return("Sorry!")
@@ -118,8 +116,8 @@ archive <- function(df) {
 }
 abc <- data.frame(x=LETTERS[1:3], y=letters[1:3])
 archive(abc)
-xyz <- data.frame(x=LETTERS[4:6], y=letters[4:6])
-archive(xyz)
+def <- data.frame(x=LETTERS[4:6], y=letters[4:6])
+archive(def)
 print(arc)
 ```
 
