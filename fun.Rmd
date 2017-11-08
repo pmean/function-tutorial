@@ -1,4 +1,4 @@
-# Impute.Rmd
+# fun.Rmd
 
 This program was written in R Markdown written by Steve Simon. It requires
 * R (no particular version)
