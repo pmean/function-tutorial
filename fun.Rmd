@@ -9,17 +9,12 @@ date: "Thursday, April 28, 2016"
 output: html_document  
 ---
 
-In R, there is a solid wall between what goes on in your R program
-and what goes on inside the functions that you write for your
-program. The functions are largely unaware of what is going on
-in your program and the rest of your program is largely unaware
-of what is going on in functions. There are ways, however, where
-you can peek around the wall and pass information back and forth.
+In R, there is a solid wall between what goes on in your R program and what goes on inside the functions that you write for your program. The functions are largely unaware of what is going on in your program and the rest of your program is largely unaware of what is going on in functions. There are ways, however, where you can peek around the wall and pass information back and forth.
 
 A function in R can see values that appear in your main program.
 
 ```{r information_that_your_function_can_see}
-save.image("backup.RData"); rm(list=ls()) # start with a blank slate.
+rm(list=ls()) # start with a blank slate.
 vegas <- function() {
   if (lottery_winnings>0) {return("Congraluations!")}
      else return("Sorry!")
@@ -30,10 +25,7 @@ lottery_winnings <- 1E6
 vegas()
 ```
 
-But any changes made inside a function disappear once the
-function ends. In other words, what happens in Vegas stays
-in Vegas. The only thing that the main program can see
-is what the function returns.
+But any changes made inside a function disappear once the function ends. In other words, what happens in Vegas stays in Vegas. The only thing that the main program can see is what the function returns.
 
 ```{r informantion_that_your_main_program_cannot_see}
 rm(list=ls())
@@ -48,8 +40,7 @@ vegas()
 print(lottery_winnings)
 ```
 
-To allow changes inside a function to persist outside
-the function, use the "<<-" assignment operator.
+To allow changes inside a function to persist outside the function, use the "<<-" assignment operator.
 
 ```{r information_that_your_main_program_can_see}
 rm(list=ls())
@@ -66,9 +57,7 @@ print(lottery_winnings)
 
 I like that a lot better, don't you?
 
-Now there are problems in the opposite direction also. A function doesn't
-know exactly what is being passed to it other than what the value itself
-is.
+Now there are problems in the opposite direction also. A function doesn't know exactly what is being passed to it other than what the value itself is.
 
 ```{r information_that_your_function cannot_see}
 rm(list=ls())
@@ -95,14 +84,9 @@ poker_winnings <- 1e7
 vegas(poker_winnings)
 ```
 
-These are artificial examples, but here is a real example where you
-need to use the <<- assign operator and the deparse and substitute
-functions.
+These are artificial examples, but here is a real example where you need to use the <<- assign operator and the deparse and substitute functions.
 
-Many of my programs accumulate a large number of intermediate
-data.frames. I would like to store and document these data frames
-so I could review things easily should things go wrong. The archive
-function automates this process.
+Many of my programs accumulate a large number of intermediate data.frames. I would like to store and document these data frames so I could review things easily should things go wrong. The archive function automates this process.
 
 ```{r archive_function}
 rm(list=ls())
@@ -119,8 +103,4 @@ archive(abc)
 def <- data.frame(x=LETTERS[4:6], y=letters[4:6])
 archive(def)
 print(arc)
-```
-
-```{r save-everything, timer=TRUE}
-save.image("archive.RData")
 ```
